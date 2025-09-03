@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A crisp, scenario‑based map of the next 1,000 years—hinges to watch, milestones, signals dashboard, and actions to bias a better future." />
+  <title>Next 1,000 Years — Scenarios & Signals</title>
+  <style>
+    /* --- Design tokens --- */
+    :root {
+      --bg: #0b1220;
+      --panel: #0f1a2b;
+      --text: #e7edf7;
+      --muted: #a8b3c6;
+      --brand: #7dd3fc; /* sky */
+      --brand-2: #a78bfa; /* violet */
+      --ok: #86efac;
+      --warn: #fde68a;
+      --bad: #fca5a5;
+      --accent: #60a5fa; /* blue */
+      --ring: 0 0 0 3px rgba(96,165,250,.35);
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --maxw: 1080px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(124,58,237,.18), transparent 60%),
+                  radial-gradient(1200px 800px at 110% 10%, rgba(14,165,233,.18), transparent 60%),
+                  var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Layout */
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+    header.site {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: saturate(1.1) blur(8px);
+      background: color-mix(in oklab, var(--bg), transparent 70%);
+      border-bottom: 1px solid color-mix(in oklab, var(--text), transparent 90%);
+    }
+    .bar { display: flex; gap: 14px; align-items: center; justify-content: space-between; padding: 14px 0; }
+    .brand { display: flex; gap: 10px; align-items: center; font-weight: 700; letter-spacing: .2px; }
+    .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow: 0 0 0 2px color-mix(in oklab, var(--panel), transparent 20%), 0 0 0 6px color-mix(in oklab, var(--brand), transparent 75%); }
+    nav ul { list-style: none; display: flex; gap: 14px; margin: 0; padding: 0; flex-wrap: wrap; }
+    nav a { display: inline-block; padding: 8px 10px; border-radius: 999px; border: 1px solid transparent; }
+    nav a:focus-visible { outline: none; box-shadow: var(--ring); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #001028; font-weight: 700; border-radius: 999px; padding: 10px 14px;
+      border: 0; cursor: pointer; box-shadow: var(--shadow);
+    }
+    .btn:focus-visible { outline: none; box-shadow: var(--ring); }
+    .btn.ghost { background: transparent; color: var(--text); border: 1px solid color-mix(in oklab, var(--text), transparent 80%); box-shadow: none; }
+
+    /* Hero */
+    .hero { padding: clamp(32px, 8vw, 72px) 0 32px; text-align: center; }
+    .hero h1 { margin: 10px 0 12px; font-size: clamp(28px, 5vw, 48px); line-height: 1.1; letter-spacing: .2px; }
+    .hero p { margin: 0 auto; max-width: 800px; color: var(--muted); }
+    .tags { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .tag { border: 1px dashed color-mix(in oklab, var(--text), transparent 80%); padding: 6px 10px; border-radius: 999px; font-size: 14px; color: var(--muted); }
+
+    /* Cards & sections */
+    section { padding: 44px 0; }
+    h2 { font-size: clamp(22px, 3.2vw, 30px); margin: 0 0 12px; }
+    .panel { background: color-mix(in oklab, var(--panel), transparent 0%); border: 1px solid color-mix(in oklab, var(--text), transparent 90%); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .col-12 { grid-column: span 12; }
+    .col-6 { grid-column: span 6; }
+    .col-4 { grid-column: span 4; }
+    .col-3 { grid-column: span 3; }
+    @media (max-width: 900px){ .col-6, .col-4, .col-3 { grid-column: span 12; } }
+
+    .toc { display: flex; gap: 10px; flex-wrap: wrap; }
+    .toc a { background: color-mix(in oklab, var(--panel), transparent 10%); border: 1px solid color-mix(in oklab, var(--text), transparent 85%); border-radius: 999px; padding: 6px 12px; }
+
+    /* Prob bars */
+    .prob { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; margin-top: 8px; }
+    .barwrap { height: 10px; background: color-mix(in oklab, var(--text), transparent 92%); border-radius: 999px; overflow: hidden; }
+    .barfill { height: 100%; background: linear-gradient(90deg, var(--brand), var(--brand-2)); width: var(--w, 50%); }
+    .pill { font-variant-numeric: tabular-nums; background: color-mix(in oklab, var(--panel), transparent 10%); border: 1px solid color-mix(in oklab, var(--text), transparent 80%); padding: 4px 8px; border-radius: 8px; font-size: 14px; }
+
+    /* Timeline */
+    .timeline { position: relative; padding-left: 18px; }
+    .timeline::before { content:""; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: color-mix(in oklab, var(--text), transparent 85%); }
+    .titem { position: relative; margin: 14px 0 18px; }
+    .titem::before { content:""; position: absolute; left: -2px; top: .5em; width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow: 0 0 0 3px color-mix(in oklab, var(--panel), transparent 10%); }
+    .titem h3 { margin: 0 0 6px; font-size: 18px; }
+    .muted { color: var(--muted); }
+
+    /* Signals table */
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 12px; text-align: left; vertical-align: top; }
+    thead th { position: sticky; top: 58px; background: color-mix(in oklab, var(--panel), transparent 0%); border-bottom: 1px solid color-mix(in oklab, var(--text), transparent 80%); z-index: 10; }
+    tbody tr { border-bottom: 1px dashed color-mix(in oklab, var(--text), transparent 90%); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid color-mix(in oklab, var(--text), transparent 80%); color: var(--muted); }
+
+    /* Footer */
+    footer { padding: 40px 0 80px; color: var(--muted); text-align: center; }
+    .small { font-size: 14px; }
+
+    /* Print */
+    @media print {
+      header.site, .btn, .toc { display: none !important; }
+      body { background: #fff; color: #000; }
+      .panel { box-shadow: none; border-color: #ddd; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap bar" role="navigation" aria-label="Primary">
+      <div class="brand"><span class="dot" aria-hidden="true"></span><a href="#top" style="font-size:18px;color:var(--text);text-decoration:none">Next 1,000 Years</a></div>
+      <nav>
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#arcs">Scenarios</a></li>
+          <li><a href="#timeline">Timeline</a></li>
+          <li><a href="#hinges">Hinges</a></li>
+          <li><a href="#signals">Signals</a></li>
+          <li><a href="#actions">Actions</a></li>
+          <li><a href="#principles">Principles</a></li>
+          <li><a href="#projects">Cathedral</a></li>
+        </ul>
+      </nav>
+      <div style="display:flex;gap:8px">
+        <a class="btn" href="#signals">Open signals</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top" class="wrap" tabindex="-1">
+    <section class="hero" id="overview">
+      <h1>Map of the Next 1,000 Years</h1>
+      <p>A scenario‑based view of the future with milestones to watch, levers you can pull, and a lightweight signals dashboard you can adapt for your community or project.</p>
+      <div class="tags">
+        <span class="tag">Open‑source civilization</span>
+        <span class="tag">Energy‑aware compute</span>
+        <span class="tag">Local‑first & repairable</span>
+        <span class="tag">Pluralism with guardrails</span>
+      </div>
+      <p class="small muted" id="updated">Last updated: —</p>
+      <div class="panel" style="margin-top:18px">
+        <div class="toc">
+          <strong style="color:var(--muted);padding-right:8px">Jump to:</strong>
+          <a href="#arcs">Scenarios</a>
+          <a href="#timeline">Time horizons</a>
+          <a href="#hinges">Hinges</a>
+          <a href="#signals">Signals dashboard</a>
+          <a href="#actions">Things to build now</a>
+          <a href="#principles">Design principles</a>
+          <a href="#projects">Cathedral projects</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scenarios -->
+    <section id="arcs">
+      <h2>Four plausible arcs</h2>
+      <div class="grid">
+        <article class="panel col-6" aria-labelledby="arc1">
+          <h3 id="arc1">Cooperative Abundance</h3>
+          <p class="muted">AI is aligned enough, clean power scales, open standards win. Poverty and disease plunge; biodiversity stabilizes; creativity blooms.</p>
+          <div class="prob">
+            <div class="barwrap" aria-hidden="true"><div class="barfill" style="--w:30%"></div></div>
+            <span class="pill" aria-label="Probability">≈ 30%</span>
+          </div>
+        </article>
+        <article class="panel col-6" aria-labelledby="arc2">
+          <h3 id="arc2">Patchwork of Islands</h3>
+          <p class="muted">Fragmented regions & networks. Lots of local innovation; uneven prosperity; progress without a single global order.</p>
+          <div class="prob">
+            <div class="barwrap"><div class="barfill" style="--w:35%"></div></div>
+            <span class="pill">≈ 35%</span>
+          </div>
+        </article>
+        <article class="panel col-6" aria-labelledby="arc3">
+          <h3 id="arc3">Managed Descent</h3>
+          <p class="muted">Climate overshoot + limits force a planned “power‑lean” civilization. Circularity, shorter supply chains, slower tech cycles.</p>
+          <div class="prob">
+            <div class="barwrap"><div class="barfill" style="--w:20%"></div></div>
+            <span class="pill">≈ 20%</span>
+          </div>
+        </article>
+        <article class="panel col-6" aria-labelledby="arc4">
+          <h3 id="arc4">Failure Modes</h3>
+          <p class="muted">Major wars, unaligned AI, bioevents, or cascading climate shocks. Humanity survives with setbacks; likely reverts to Patchwork.</p>
+          <div class="prob">
+            <div class="barwrap"><div class="barfill" style="--w:15%"></div></div>
+            <span class="pill">≈ 15%</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section id="timeline">
+      <h2>Time horizons & probable milestones</h2>
+      <div class="panel timeline">
+        <div class="titem">
+          <h3>2025–2055 · The Refactor</h3>
+          <ul>
+            <li>AI becomes general‑purpose (on‑device + edge); robotics spreads in logistics, care, and agriculture.</li>
+            <li>Grids strain; SMR fission, geothermal, and wind/solar + long‑duration storage expand; district waste‑heat reuse grows.</li>
+            <li>Local‑first, cloud‑optional software patterns mature; personal servers & community micro‑datacenters appear.</li>
+            <li>Cities retrofit for heat, water, and flood resilience; governance experiments: data trusts, open identity/consent protocols.</li>
+          </ul>
+        </div>
+        <div class="titem">
+          <h3>2055–2100 · Light‑touch Planetary Engineering</h3>
+          <ul>
+            <li>Precision biotech normalizes; pandemics become containable with rapid, open countermeasures.</li>
+            <li>Materials revolution: recyclable composites, programmable matter; near‑zero‑waste manufacturing.</li>
+            <li>Off‑world economy shifts to utility in LEO/cislunar; Earth remains cultural and biological home.</li>
+            <li>Longevity improves; “lifelong guilds” and simulators become core education.</li>
+          </ul>
+        </div>
+        <div class="titem">
+          <h3>2100–2200 · Civic Renaissance</h3>
+          <ul>
+            <li>Carbon‑free energy dominates; atmospheric CO₂ peaks then trends down; ocean/soil restoration at scale.</li>
+            <li>Network polities interoperate; reputation & reciprocity travel with you.
+            </li>
+          </ul>
+        </div>
+        <div class="titem">
+          <h3>2200–3025 · New Branches</h3>
+          <ul>
+            <li>Some humans augment deeply; others choose baseline paths; culture cycles through new “cathedral projects.”</li>
+            <li>Off‑world habitats remain niche but enduring; Earth thrives if earlier bets succeeded.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hinges -->
+    <section id="hinges">
+      <h2>Hinges that decide the arc</h2>
+      <div class="grid">
+        <div class="panel col-6">
+          <ul>
+            <li><strong>AI alignment & governance:</strong> steerable, auditable, power‑aware systems—or not.</li>
+            <li><strong>Energy abundance vs. scarcity:</strong> &lt;$20/MWh clean baseload is a civilizational cheat code.</li>
+            <li><strong>Biosecurity norms:</strong> open science with strong guardrails.</li>
+          </ul>
+        </div>
+        <div class="panel col-6">
+          <ul>
+            <li><strong>Climate action pace:</strong> adaptation + drawdown before feedbacks lock in.</li>
+            <li><strong>Interoperability vs. enclosure:</strong> right‑to‑repair, open protocols, portability.</li>
+            <li><strong>War/peace cycles:</strong> institutions that contain crises.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Signals -->
+    <section id="signals">
+      <h2>Signals dashboard (wire it to your sources)</h2>
+      <div class="panel">
+        <table aria-describedby="sigNote">
+          <thead>
+            <tr>
+              <th scope="col">Metric</th>
+              <th scope="col">Why it matters</th>
+              <th scope="col">Thresholds / Targets</th>
+              <th scope="col">Your link</th>
+            </tr>
+          </thead>
+          <tbody id="sigBody">
+            <tr>
+              <td><span class="badge">Energy</span> $/MWh clean baseload</td>
+              <td>Cheap firm low‑carbon power unlocks industry, compute, and desalination.</td>
+              <td>&lt; $20/MWh (global median)</td>
+              <td contenteditable="true" class="muted">paste source URL or note…</td>
+            </tr>
+            <tr>
+              <td><span class="badge">Compute</span> Joules per useful task</td>
+              <td>Tracks real efficiency, not just FLOPs/$.</td>
+              <td>↓ 10× per decade sustained</td>
+              <td contenteditable="true" class="muted">paste source URL or note…</td>
+            </tr>
+            <tr>
+              <td><span class="badge">Launch</span> $/kg to LEO; cargo/yr</td>
+              <td>Lower costs & volume enable off‑world utility.</td>
+              <td>&lt; $100/kg; &gt; 1 Mt/yr</td>
+              <td contenteditable="true" class="muted">paste source URL or note…</td>
+            </tr>
+            <tr>
+              <td><span class="badge">Nature</span> Re/afforestation & soil health</td>
+              <td>Biodiversity & carbon sinks.</td>
+              <td>Global net forest gain; soil organic matter ↑</td>
+              <td contenteditable="true" class="muted">paste source URL or note…</td>
+            </tr>
+            <tr>
+              <td><span class="badge">Health</span> Health‑span vs lifespan gap</td>
+              <td>Quality of years, not just years.</td>
+              <td>Gap &lt; 5 years in most regions</td>
+              <td contenteditable="true" class="muted">paste source URL or note…</td>
+            </tr>
+            <tr>
+              <td><span class="badge">Openness</span> Open, repairable, local‑first share</td>
+              <td>Interoperability and resilience.</td>
+              <td>&gt; 50% of critical stacks</td>
+              <td contenteditable="true" class="muted">paste source URL or note…</td>
+            </tr>
+            <tr>
+              <td><span class="badge">Urban</span> Heat & water stress vs population</td>
+              <td>Adaptation coverage and equity.</td>
+              <td>Exposure ↓ year‑over‑year</td>
+              <td contenteditable="true" class="muted">paste source URL or note…</td>
+            </tr>
+          </tbody>
+        </table>
+        <p id="sigNote" class="small muted" style="margin-top:10px">Tip: the right column is editable—paste links to trackers, spreadsheets, or notes.
+        </p>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <section id="actions">
+      <h2>What to build this decade</h2>
+      <div class="grid">
+        <div class="panel col-6">
+          <ul>
+            <li><strong>Community cloud + waste‑heat reuse:</strong> open‑hardware micro‑datacenters that heat buildings and run local AI.</li>
+            <li><strong>Local‑first stacks:</strong> browser‑as‑OS patterns, offline‑sync, identity/consent built‑in.</li>
+            <li><strong>Open devices:</strong> RISC‑V kits, repairable laptops/phones/ebikes; full BOMs & service manuals.</li>
+          </ul>
+        </div>
+        <div class="panel col-6">
+          <ul>
+            <li><strong>Education guilds:</strong> apprenticeships teaching kernel, electronics, web, and civic tech via real projects.</li>
+            <li><strong>Resilience hubs:</strong> maker‑coops for repair, water, food‑growing tech, and neighborhood energy.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Principles -->
+    <section id="principles">
+      <h2>Design principles for the century</h2>
+      <div class="panel">
+        <div class="tags" style="justify-content:flex-start">
+          <span class="tag">Open by default</span>
+          <span class="tag">Local‑first</span>
+          <span class="tag">Energy‑aware compute</span>
+          <span class="tag">Composability</span>
+          <span class="tag">Interoperate or die</span>
+          <span class="tag">Repair is a right</span>
+          <span class="tag">Measure → then moralize</span>
+          <span class="tag">Protocol &gt; platform</span>
+          <span class="tag">Pluralism + guardrails</span>
+          <span class="tag">Long horizons, reversible steps</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cathedral projects -->
+    <section id="projects">
+      <h2>Thousand‑year “cathedral projects”</h2>
+      <div class="grid">
+        <article class="panel col-6">
+          <h3>Open Ecological Atlas</h3>
+          <p class="muted">Continuously updated species, soils, flows—open data, long‑term stewardship, citizen science.</p>
+        </article>
+        <article class="panel col-6">
+          <h3>Public Compute & Knowledge Vaults</h3>
+          <p class="muted">Hardware + code + art preserved and runnable for centuries; verifiable dependency trees.</p>
+        </article>
+        <article class="panel col-6">
+          <h3>Open City Blueprints</h3>
+          <p class="muted">Climate‑safe, low‑energy living patterns; templates for neighborhoods, not just buildings.</p>
+        </article>
+        <article class="panel col-6">
+          <h3>Intergenerational Apprenticeship Protocols</h3>
+          <p class="muted">Guild‑style learning across lifetimes; portable reputation and civic credentials.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer>
+      <p>Made with care. Copy, adapt, remix. <span class="muted">No external libraries. Accessible, printable, and offline‑friendly.</span></p>
+      <p class="small">Consider adding a small <code>about.html</code> and hooking the Signals table to your favorite public trackers.</p>
+    </footer>
+  </main>
+
+  <script>
+    // Last updated stamp
+    const updated = document.getElementById('updated');
+    const now = new Date();
+    updated.textContent = `Last updated: ${now.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' })}`;
+
+    // Keyboard: skip to signals with "s"
+    window.addEventListener('keydown', (e) => {
+      if(e.key.toLowerCase() === 's' && !/input|textarea|select/.test((document.activeElement||{}).tagName||'')){
+        document.querySelector('#signals').scrollIntoView({behavior:'smooth'});
+      }
+    });
+  </script>
+</body>
+</html>
