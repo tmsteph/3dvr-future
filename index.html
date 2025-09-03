@@ -114,6 +114,14 @@
       body { background: #fff; color: #000; }
       .panel { box-shadow: none; border-color: #ddd; }
     }
+      
+    /* --- Enhancements: timeline bullets & cards + signals toolbar --- */
+    .timeline .titem { margin: 16px 0 20px; padding: 14px 16px 12px 16px; background: color-mix(in oklab, var(--panel), transparent 0%); border: 1px solid color-mix(in oklab, var(--text), transparent 90%); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .timeline .titem::before { left: -10px; top: 16px; }
+    .timeline ul { list-style: disc; margin: 6px 0 0 1.2em; padding: 0; }
+    .timeline li { margin: 6px 0; }
+    .sigbar { display:flex; gap:8px; flex-wrap:wrap; margin: 8px 0 12px; }
+    .sigbar .btn { padding: 8px 12px; }
   </style>
 </head>
 <body>
@@ -267,6 +275,14 @@
     <section id="signals">
       <h2>Signals dashboard (wire it to your sources)</h2>
       <div class="panel">
+        <div class="sigbar" role="toolbar" aria-label="Signals controls">
+          <button class="btn" id="addRowBtn" type="button">Add row</button>
+          <button class="btn ghost" id="saveBtn" type="button">Save</button>
+          <button class="btn ghost" id="loadBtn" type="button">Load</button>
+          <button class="btn ghost" id="exportBtn" type="button">Export CSV</button>
+          <label class="btn ghost" for="importFile" style="cursor:pointer">Import CSV</label>
+          <input id="importFile" type="file" accept=".csv" style="display:none" />
+        </div>
         <table aria-describedby="sigNote">
           <thead>
             <tr>
@@ -398,13 +414,101 @@
     // Last updated stamp
     const updated = document.getElementById('updated');
     const now = new Date();
-    updated.textContent = `Last updated: ${now.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' })}`;
+    if(updated){ updated.textContent = `Last updated: ${now.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' })}`; }
 
-    // Keyboard: skip to signals with "s"
+    // Keyboard: press "s" to jump to Signals
     window.addEventListener('keydown', (e) => {
       if(e.key.toLowerCase() === 's' && !/input|textarea|select/.test((document.activeElement||{}).tagName||'')){
-        document.querySelector('#signals').scrollIntoView({behavior:'smooth'});
+        document.querySelector('#signals')?.scrollIntoView({behavior:'smooth'});
       }
+    });
+
+    // --- Signals table helpers ---
+    const sigBody = document.getElementById('sigBody');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const loadBtn = document.getElementById('loadBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importFile = document.getElementById('importFile');
+
+    function serializeTable(){
+      const rows = [...sigBody.querySelectorAll('tr')].map(tr =>
+        [...tr.children].map(td => td.getAttribute('contenteditable') ? td.innerHTML : td.innerHTML)
+      );
+      return rows;
+    }
+    function restoreTable(rows){
+      if(!Array.isArray(rows)) return;
+      sigBody.innerHTML = '';
+      for(const r of rows){
+        const tr = document.createElement('tr');
+        const [metric, why, target, link] = r;
+        tr.innerHTML = `
+          <td>${metric || ''}</td>
+          <td>${why || ''}</td>
+          <td>${target || ''}</td>
+          <td contenteditable="true" class="muted">${link || ''}</td>`;
+        sigBody.appendChild(tr);
+      }
+    }
+
+    addRowBtn?.addEventListener('click', () => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="badge">Custom</span> New metric</td>
+        <td>Describe why it matters…</td>
+        <td>Set a target…</td>
+        <td contenteditable="true" class="muted">paste source URL or note…</td>`;
+      sigBody.appendChild(tr);
+      tr.scrollIntoView({behavior:'smooth', block:'center'});
+    });
+
+    saveBtn?.addEventListener('click', () => {
+      localStorage.setItem('signalsTable', JSON.stringify(serializeTable()));
+      saveBtn.textContent = 'Saved ✓';
+      setTimeout(() => saveBtn.textContent = 'Save', 1200);
+    });
+
+    loadBtn?.addEventListener('click', () => {
+      const data = localStorage.getItem('signalsTable');
+      if(data){ restoreTable(JSON.parse(data)); }
+    });
+
+    exportBtn?.addEventListener('click', () => {
+      const rows = serializeTable();
+      const csv = rows.map(r => r.map(x => '"' + String(x).replace(/"/g,'""') + '"').join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'signals.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    importFile?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = String(reader.result || '');
+        const rows = text.split(/\r?\n/).filter(Boolean).map(line => {
+          const cells = [];
+          let cur = '', inQ = false;
+          for(let i=0;i<line.length;i++){
+            const ch = line[i];
+            if(ch === '"'){
+              if(inQ && line[i+1] === '"'){ cur += '"'; i++; }
+              else { inQ = !inQ; }
+            } else if(ch === ',' && !inQ){ cells.push(cur); cur=''; }
+            else { cur += ch; }
+          }
+          cells.push(cur);
+          return cells;
+        });
+        restoreTable(rows);
+      };
+      reader.readAsText(file);
+      e.target.value = '';
     });
   </script>
 </body>
